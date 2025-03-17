@@ -75,7 +75,7 @@ object BreakpointHtmlRenderer {
 
     fun getHtml(breakpoints: List<Breakpoint>): String {
         val breakpointsHtml = breakpoints.joinToString("") { bp ->
-            "<tr><td class='identifier'>${bp.fileName}</td><td class='number'>${bp.lineNumber}</td></tr>"
+            "<tr><td class='identifier'>${bp.filePath}</td><td class='number'>${bp.lineNumber}</td></tr>"
         }
 
         return """
