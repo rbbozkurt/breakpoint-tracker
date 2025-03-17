@@ -1,14 +1,13 @@
 <idea-plugin>
     <id>com.rbbozkurt.breakpointtracker</id>
     <name>Breakpoint Tracker</name>
-    <vendor email="your_email@example.com">Your Name</vendor>
-
+    <vendor url="https://www.rbbozkurt.com/" email="resitberkaybozkurt@gmail.com">R. Berkay Bozkurt</vendor>
+    <description><![CDATA[
+        Breakpoint Tracker is a plugin designed to provide real-time monitoring of all breakpoints within your project. It offers a dedicated tool window that displays the current number of breakpoints, updates dynamically as breakpoints are added or removed, and specifies the exact file and line number for each breakpoint. This tool enhances debugging efficiency by offering a clear overview of all breakpoints in one centralized location.
+    ]]></description>
     <depends>com.intellij.modules.platform</depends>
-
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.rbbozkurt.breakpointtracker.BreakpointTrackerStartupActivity"/>
         <toolWindow id="Breakpoint Tracker" factoryClass="com.rbbozkurt.breakpointtracker.ui.BreakpointTrackerWindowFactory"/>
     </extensions>
-
-
 </idea-plugin>
