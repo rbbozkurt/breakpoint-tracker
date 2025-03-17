@@ -4,6 +4,16 @@ import com.rbbozkurt.breakpointtracker.util.Breakpoint
 
 object BreakpointHtmlRenderer {
 
+    /** 🔥 Public method to render UI based on the UI state */
+    fun render(uiState: JcefBrowserUiState): String {
+        return when {
+            uiState.isLoading -> getLoadingHtml()
+            uiState.breakpoints.isEmpty() -> getNoBreakpointsHtml()
+            else -> getHtml(uiState.breakpoints)
+        }
+    }
+
+    /** 🔒 Private styling */
     private const val STYLE = """
         <style>
             @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
@@ -47,7 +57,8 @@ object BreakpointHtmlRenderer {
         </style>
     """
 
-    fun getLoadingHtml(): String {
+    /** 🔒 Private loading state */
+    private fun getLoadingHtml(): String {
         return """
             <html>
             <head>
@@ -60,7 +71,8 @@ object BreakpointHtmlRenderer {
         """.trimIndent()
     }
 
-    fun getNoBreakpointsHtml(): String {
+    /** 🔒 Private "No Breakpoints" state */
+    private fun getNoBreakpointsHtml(): String {
         return """
             <html>
             <head>
@@ -73,7 +85,8 @@ object BreakpointHtmlRenderer {
         """.trimIndent()
     }
 
-    fun getHtml(breakpoints: List<Breakpoint>): String {
+    /** 🔒 Private table rendering */
+    private fun getHtml(breakpoints: List<Breakpoint>): String {
         val breakpointsHtml = breakpoints.joinToString("") { bp ->
             "<tr><td class='identifier'>${bp.filePath}</td><td class='number'>${bp.lineNumber}</td></tr>"
         }

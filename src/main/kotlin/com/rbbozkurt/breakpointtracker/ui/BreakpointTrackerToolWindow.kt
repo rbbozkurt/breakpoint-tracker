@@ -1,8 +1,12 @@
 package com.rbbozkurt.breakpointtracker.ui
 
+import com.google.gson.Gson
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.ui.content.ContentFactory
+import com.intellij.ui.jcef.JBCefBrowser
+import com.intellij.ui.jcef.executeJavaScript
 import com.intellij.util.messages.MessageBusConnection
 import com.rbbozkurt.breakpointtracker.util.Breakpoint
 import com.rbbozkurt.breakpointtracker.util.BreakpointUpdateNotifier
@@ -14,24 +18,42 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.swing.JPanel
 import javax.swing.BoxLayout
+import javax.swing.JComponent
 
 class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
 
-    private val browser = JcefBrowser()
+    private val logger = Logger.getInstance(BreakpointTrackerToolWindow::class.java)
+
+    private val isExtern = System.getenv("UI_ENV") == "extern"
+    private val frontendUrl = System.getenv("UI_URL") ?: "http://localhost:5173"
+    private val browser = JBCefBrowser()
+    private val gson = Gson()
+
     private val connection: MessageBusConnection = project.messageBus.connect()
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
-    // Internal state tracking
+    // 🔥 UI State is now managed inside ToolWindow
     private val _uiStateFlow = MutableStateFlow(JcefBrowserUiState(isLoading = true))
     val uiStateFlow = _uiStateFlow.asStateFlow()
 
     init {
+        logger.info("Initializing BreakpointTrackerToolWindow...")
+        logger.info("UI_ENV = $isExtern, UI_URL = $frontendUrl")
+
+        if (isExtern) {
+            logger.info("Loading external frontend from: $frontendUrl")
+            browser.loadURL(frontendUrl)
+        } else {
+            logger.info("Using built-in renderer.")
+        }
+        updateUI(_uiStateFlow.value)
+
         val panel = JPanel().apply {
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
             add(browser.component)
         }
 
-        // Subscribe to MessageBus for breakpoints updates
+        // Subscribe to MessageBus for breakpoint updates
         connection.subscribe(BreakpointUpdateNotifier.TOPIC, object : BreakpointUpdateNotifier {
             override fun onBreakpointsUpdated(breakpoints: List<Breakpoint>) {
                 coroutineScope.launch {
@@ -46,11 +68,7 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
         // Collect state updates and update UI
         coroutineScope.launch {
             uiStateFlow.collectLatest { uiState ->
-                when {
-                    uiState.isLoading -> browser.showLoading()
-                    uiState.breakpoints.isEmpty() -> browser.showNoBreakpoints()
-                    else -> browser.updateBreakpoints(uiState.breakpoints)
-                }
+                updateUI(uiState)
             }
         }
 
@@ -58,5 +76,39 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
         val contentFactory = ContentFactory.getInstance()
         val content = contentFactory.createContent(panel, "", false)
         toolWindow.contentManager.addContent(content)
+    }
+
+    val component: JComponent
+        get() = browser.component
+
+    /** Updates UI based on current state */
+    private fun updateUI(uiState: JcefBrowserUiState) {
+        if (isExtern) {
+            sendToFrontend(uiState)
+        } else {
+            updateInternalRenderer(uiState)
+        }
+    }
+
+    /** Sends UI state to external React frontend */
+    private fun sendToFrontend(uiState: JcefBrowserUiState) {
+        val jsonState = gson.toJson(uiState)
+        logger.info("Sending UI state to frontend: $jsonState")
+
+        coroutineScope.launch {
+            browser.executeJavaScript("""
+            if (window.updateBreakpoints) {
+                window.updateBreakpoints($jsonState);
+            }
+        """.trimIndent())
+        }
+    }
+
+
+    /** Updates built-in HTML Renderer */
+    private fun updateInternalRenderer(uiState: JcefBrowserUiState) {
+        val html = BreakpointHtmlRenderer.render(uiState)
+        browser.loadHTML(html)
+
     }
 }
