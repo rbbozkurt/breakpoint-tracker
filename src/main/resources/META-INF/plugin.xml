@@ -1,0 +1,14 @@
+<idea-plugin>
+    <id>com.rbbozkurt.breakpointtracker</id>
+    <name>Breakpoint Tracker</name>
+    <vendor email="your_email@example.com">Your Name</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.rbbozkurt.breakpointtracker.BreakpointTrackerStartupActivity"/>
+        <toolWindow id="Breakpoint Tracker" factoryClass="com.rbbozkurt.breakpointtracker.ui.BreakpointTrackerWindowFactory"/>
+    </extensions>
+
+
+</idea-plugin>
