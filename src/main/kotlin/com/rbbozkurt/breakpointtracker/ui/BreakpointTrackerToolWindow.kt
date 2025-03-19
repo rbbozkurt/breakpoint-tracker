@@ -8,14 +8,10 @@ import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.jcef.JBCefBrowser
 import com.intellij.ui.jcef.executeJavaScript
 import com.intellij.util.messages.MessageBusConnection
-import com.intellij.xdebugger.XDebuggerManager
-import com.intellij.xdebugger.breakpoints.XBreakpoint
-import com.intellij.xdebugger.breakpoints.XBreakpointListener
 import com.rbbozkurt.breakpointtracker.util.Breakpoint
 import com.rbbozkurt.breakpointtracker.util.BreakpointUpdateNotifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -28,6 +24,14 @@ import javax.swing.JPanel
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 
+/**
+ * Tool window responsible for displaying and tracking breakpoints using JCEF in a JetBrains IDE.
+ *
+ * This class manages the JCEF browser, subscribes to breakpoint updates, and renders the UI accordingly.
+ *
+ * @property project The associated IntelliJ project.
+ * @property toolWindow The tool window where the UI is displayed.
+ */
 class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
 
     private val logger = Logger.getInstance(BreakpointTrackerToolWindow::class.java)
@@ -35,16 +39,16 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
     private val frontendUrl = System.getenv("UI_URL") ?: "http://localhost:$frontendPort"
     private val isExtern = System.getenv("UI_ENV") == "extern"
 
-
     private val browser = JBCefBrowser()
     private val gson = Gson()
     private val connection: MessageBusConnection = project.messageBus.connect()
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     private var isBrowserReady = false
-    private var previousUiState: JcefBrowserUiState? = null
 
-    // 🔥 UI State Management
+    /**
+     * UI state flow to manage the rendering of breakpoints.
+     */
     private val _uiStateFlow = MutableStateFlow(JcefBrowserUiState(isLoading = true))
     val uiStateFlow = _uiStateFlow.asStateFlow()
 
@@ -64,29 +68,23 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
         startRendering()
     }
 
-    val component: JComponent
-        get() = browser.component
-
-    /** 🔥 Track when JCEF is fully loaded */
+    /**
+     * Adds a load listener to track when JCEF is fully loaded.
+     */
     private fun addBrowserLoadListener() {
         browser.jbCefClient.addLoadHandler(object : CefLoadHandler {
             override fun onLoadEnd(browser: CefBrowser?, frame: CefFrame?, httpStatusCode: Int) {
-                logger.info("✅ JCEF Browser fully loaded (Status: $httpStatusCode)")
+                logger.info("JCEF Browser fully loaded (Status: $httpStatusCode)")
                 isBrowserReady = true
                 sendToFrontend(uiStateFlow.value)
             }
 
             override fun onLoadError(browser: CefBrowser?, frame: CefFrame?, errorCode: CefLoadHandler.ErrorCode?, errorText: String?, failedUrl: String?) {
-                logger.error("❌ JCEF failed: $errorText ($failedUrl)")
+                logger.error("JCEF failed: $errorText ($failedUrl)")
             }
 
-            override fun onLoadingStateChange(
-                browser: CefBrowser?,
-                isLoading: Boolean,
-                canGoBack: Boolean,
-                canGoForward: Boolean
-            ) {
-                TODO("Not yet implemented")
+            override fun onLoadingStateChange(browser: CefBrowser?, isLoading: Boolean, canGoBack: Boolean, canGoForward: Boolean) {
+                // Not yet implemented
             }
 
             override fun onLoadStart(browser: CefBrowser?, frame: CefFrame?, transitionType: CefRequest.TransitionType) {
@@ -95,7 +93,9 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
         }, browser.cefBrowser)
     }
 
-    /** 🔥 Setup UI */
+    /**
+     * Sets up the UI layout within the tool window.
+     */
     private fun setupUI(toolWindow: ToolWindow) {
         val panel = JPanel().apply {
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
@@ -105,7 +105,9 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
         toolWindow.contentManager.addContent(content)
     }
 
-    /** 🔥 Subscribe to breakpoint changes */
+    /**
+     * Subscribes to breakpoint updates and updates the UI state accordingly.
+     */
     private fun subscribeToBreakpointUpdates() {
         connection.subscribe(BreakpointUpdateNotifier.TOPIC, object : BreakpointUpdateNotifier {
             override fun onBreakpointsUpdated(breakpoints: List<Breakpoint>) {
@@ -117,6 +119,9 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
         })
     }
 
+    /**
+     * Starts the rendering process based on UI state changes.
+     */
     private fun startRendering(){
         coroutineScope.launch {
             uiStateFlow.collectLatest { uiState ->
@@ -128,9 +133,11 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
         }
     }
 
-
-
-    /** 🔥 Send Data to Frontend */
+    /**
+     * Sends the UI state data to the frontend.
+     *
+     * @param uiState The UI state to be sent.
+     */
     private fun sendToFrontend(uiState: JcefBrowserUiState) {
         val jsonState = gson.toJson(uiState)
         coroutineScope.launch(Dispatchers.IO) {

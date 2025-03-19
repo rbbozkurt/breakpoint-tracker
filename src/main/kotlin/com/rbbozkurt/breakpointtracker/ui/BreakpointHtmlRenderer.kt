@@ -2,9 +2,17 @@ package com.rbbozkurt.breakpointtracker.ui
 
 import com.rbbozkurt.breakpointtracker.util.Breakpoint
 
+/**
+ * Object responsible for rendering HTML content for displaying breakpoints in a JetBrains IDE plugin.
+ */
 object BreakpointHtmlRenderer {
 
-    /** 🔥 Public method to render UI based on the UI state */
+    /**
+     * Generates HTML representation based on the provided UI state.
+     *
+     * @param uiState The current state of the UI, determining what to render.
+     * @return A string containing the generated HTML.
+     */
     fun render(uiState: JcefBrowserUiState): String {
         return when {
             uiState.isLoading -> getLoadingHtml()
@@ -13,7 +21,9 @@ object BreakpointHtmlRenderer {
         }
     }
 
-    /** 🔒 Private styling */
+    /**
+     * CSS styles used in the generated HTML.
+     */
     private const val STYLE = """
         <style>
             @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
@@ -40,7 +50,7 @@ object BreakpointHtmlRenderer {
             }
             thead th {
                 border-bottom: 2px solid #515151;
-                color: #cc7832; /* Keyword color */
+                color: #cc7832;
             }
             tbody tr:nth-child(even) {
                 background-color: #323232;
@@ -48,7 +58,6 @@ object BreakpointHtmlRenderer {
             tbody tr:nth-child(odd) {
                 background-color: #2b2b2b;
             }
-            /* Syntax highlighting */
             .keyword { color: #cc7832; }
             .string { color: #6a8759; }
             .comment { color: #808080; font-style: italic; }
@@ -57,7 +66,11 @@ object BreakpointHtmlRenderer {
         </style>
     """
 
-    /** 🔒 Private loading state */
+    /**
+     * Generates HTML for the loading state.
+     *
+     * @return A string containing the loading state HTML.
+     */
     private fun getLoadingHtml(): String {
         return """
             <html>
@@ -71,7 +84,11 @@ object BreakpointHtmlRenderer {
         """.trimIndent()
     }
 
-    /** 🔒 Private "No Breakpoints" state */
+    /**
+     * Generates HTML for the "No Breakpoints" state.
+     *
+     * @return A string containing the "No Breakpoints" state HTML.
+     */
     private fun getNoBreakpointsHtml(): String {
         return """
             <html>
@@ -85,7 +102,12 @@ object BreakpointHtmlRenderer {
         """.trimIndent()
     }
 
-    /** 🔒 Private table rendering */
+    /**
+     * Generates HTML to display a list of breakpoints.
+     *
+     * @param breakpoints A list of breakpoints to be displayed.
+     * @return A string containing the generated HTML.
+     */
     private fun getHtml(breakpoints: List<Breakpoint>): String {
         val breakpointsHtml = breakpoints.joinToString("") { bp ->
             "<tr><td class='identifier'>${bp.filePath}</td><td class='number'>${bp.lineNumber}</td></tr>"
