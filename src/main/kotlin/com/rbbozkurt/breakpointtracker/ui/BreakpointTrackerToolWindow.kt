@@ -31,8 +31,10 @@ import javax.swing.JComponent
 class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
 
     private val logger = Logger.getInstance(BreakpointTrackerToolWindow::class.java)
+    private val frontendPort = System.getenv("UI_PORT") ?: "5173"
+    private val frontendUrl = System.getenv("UI_URL") ?: "http://localhost:$frontendPort"
     private val isExtern = System.getenv("UI_ENV") == "extern"
-    private val frontendUrl = System.getenv("UI_URL") ?: "http://localhost:5178"
+
 
     private val browser = JBCefBrowser()
     private val gson = Gson()
@@ -71,6 +73,7 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
             override fun onLoadEnd(browser: CefBrowser?, frame: CefFrame?, httpStatusCode: Int) {
                 logger.info("✅ JCEF Browser fully loaded (Status: $httpStatusCode)")
                 isBrowserReady = true
+                sendToFrontend(uiStateFlow.value)
             }
 
             override fun onLoadError(browser: CefBrowser?, frame: CefFrame?, errorCode: CefLoadHandler.ErrorCode?, errorText: String?, failedUrl: String?) {
@@ -125,17 +128,7 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
         }
     }
 
-    /** 🔥 Update UI */
-    private fun updateUI(uiState: JcefBrowserUiState) {
-        if (uiState == previousUiState) return
-        previousUiState = uiState
 
-        if (isExtern) {
-            sendToFrontend(uiState)
-        } else {
-            browser.loadHTML(BreakpointHtmlRenderer.render(uiState))
-        }
-    }
 
     /** 🔥 Send Data to Frontend */
     private fun sendToFrontend(uiState: JcefBrowserUiState) {
@@ -143,7 +136,7 @@ class BreakpointTrackerToolWindow(project: Project, toolWindow: ToolWindow) {
         coroutineScope.launch(Dispatchers.IO) {
             if (isBrowserReady) {
                 browser.executeJavaScript("""
-                    setTimeout(() => window.updateBreakpoints?.($jsonState), 500);
+                    window.updateBreakpoints?.($jsonState)
                 """.trimIndent())
             }
         }
