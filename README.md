@@ -22,19 +22,12 @@
 📦 breakpoint-tracker
 ├── assets/
 ├── 📂 frontend/                   # External React frontend (optional)
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── index.html
-│   ├── ...
-├── 📂 plugin/                     # JetBrains plugin core
-│   ├── src/main/java/com/rbbozkurt/breakpointtracker
+├── 📂 src/                        # JetBrains plugin core
+│   ├── main/kotlin/com/rbbozkurt/breakpointtracker
 │   │   ├── ui/                    # UI components (JCEF)
 │   │   ├── service/               # Breakpoint tracking logic
 │   │   ├── util/                  # Utility functions
-│   ├── build.gradle.kts
-│   ├── plugin.xml
+│   ├── resources/META-INF
 ├── run_plugin.sh                   # Script to build & run plugin with UI options
 ├── README.md                       # Documentation
 ```
