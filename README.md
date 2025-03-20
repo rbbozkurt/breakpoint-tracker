@@ -20,6 +20,7 @@
 
 ```
 📦 breakpoint-tracker
+├── assets/
 ├── 📂 frontend/                   # External React frontend (optional)
 │   ├── src/
 │   ├── public/
@@ -57,7 +58,7 @@ Before running the plugin, ensure you have the following installed:
 
 Clone the repository:
 ```bash
-git clone https://github.com/your-repo/breakpoint-tracker.git
+git clone https://github.com/rbbozkurt/breakpoint-tracker.git
 cd breakpoint-tracker
 ```
 
@@ -69,7 +70,7 @@ chmod +x run_plugin.sh
 
 You will be prompted to choose:
 
-1️⃣ **Intern Mode** – Uses JetBrains' built-in JCEF Renderer (no external server).  
+1️⃣ **Intern Mode** – Uses JetBrains' built-in JCEF Renderer (no external server).
 2️⃣ **Extern Mode** – Uses an external React frontend. *(You will be asked to enter a port.)*
 
 > **Example Run for Extern Mode:**
@@ -78,6 +79,15 @@ You will be prompted to choose:
 > - The script will start the frontend & plugin.
 
 ---
+
+## 🎬 Demo
+###  🖥️ Intern Mode (JCEF Renderer)  
+  ![Intern Mode](assets/intern_demo.gif)
+
+
+###  🌐 Extern Mode (React Frontend)  
+  ![Extern Mode](assets/extern_demo.gif)
+###
 
 ## **🖥️ Development**
 
