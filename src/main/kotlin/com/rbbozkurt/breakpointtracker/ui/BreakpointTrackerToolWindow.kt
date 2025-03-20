@@ -22,7 +22,6 @@ import org.cef.handler.CefLoadHandler
 import org.cef.network.CefRequest
 import javax.swing.JPanel
 import javax.swing.BoxLayout
-import javax.swing.JComponent
 
 /**
  * Tool window responsible for displaying and tracking breakpoints using JCEF in a JetBrains IDE.
