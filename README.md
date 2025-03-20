@@ -71,6 +71,7 @@ chmod +x run_plugin.sh
 You will be prompted to choose:
 
 1️⃣ **Intern Mode** – Uses JetBrains' built-in JCEF Renderer (no external server).
+
 2️⃣ **Extern Mode** – Uses an external React frontend. *(You will be asked to enter a port.)*
 
 > **Example Run for Extern Mode:**
