@@ -27,7 +27,6 @@
 │   │   ├── ui/                    # UI components (JCEF)
 │   │   ├── service/               # Breakpoint tracking logic
 │   │   ├── util/                  # Utility functions
-│   ├── resources/META-INF
 ├── run_plugin.sh                  # Script to build & run plugin with UI options
 ├── README.md                      # Documentation
 ```
